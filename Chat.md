@@ -28,3 +28,10 @@
     In this example, the AWSAuth resource defines the desired state of the aws-auth ConfigMap. It specifies the mapping of IAM roles and users to Kubernetes usernames and groups. The mapRoles field maps an IAM role to a Kubernetes username and group, while the mapUsers field maps an IAM user to a Kubernetes username and group.
 
     Note that the actual structure and fields of the AWSAuth resource would depend on the specific requirements and conventions of your application and the aws-auth ConfigMap.
+5. __Me:__ Change crd_handler.py to handle aws-auth crd from previous step.
+
+    __Chat:__ Certainly! Here's an updated version of the crd_handler.py file that includes functions to handle the AWSAuth CRD, specifically for interacting with the aws-auth ConfigMap. In this updated version, the CRDHandler class includes functions specifically tailored to handle the AWSAuth resource.
+
+    Note that the code assumes that you have already set up the Kubernetes API client and have appropriate authentication and access control in place.
+
+    You can use these functions in your code to create, retrieve, update, and delete instances of the AWSAuth resource in the aws-auth ConfigMap. Remember to replace "stable.example.com" with the actual API group and "v1" with the appropriate version for your CRD.
