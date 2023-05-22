@@ -35,3 +35,6 @@
     Note that the code assumes that you have already set up the Kubernetes API client and have appropriate authentication and access control in place.
 
     You can use these functions in your code to create, retrieve, update, and delete instances of the AWSAuth resource in the aws-auth ConfigMap. Remember to replace "stable.example.com" with the actual API group and "v1" with the appropriate version for your CRD.
+6. __Me:__ Assume that you only reading created AWSAuth  and listen to AWSAuth change or delition. Update crd_handler.py and main.py accordingly.
+    __Chat:__ This updated version of crd_handler.py removes the functions for creating, getting, updating, and deleting the AWSAuth resource since they are no longer needed. The focus is now solely on the watch_awsauth() method, which establishes a watch on the AWSAuth resources in the specified namespace and listens for changes and deletions.
+    In this updated version, the main() function creates an instance of CRDHandler and calls the watch_awsauth() method with the desired namespace, which in this case is "kube-system". This will initiate the watch and continuously listen for changes and deletions of the AWSAuth resource in the specified namespace.

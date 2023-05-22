@@ -1,52 +1,36 @@
-from kubernetes import client
+from kubernetes import client, watch
 
 class CRDHandler:
     def __init__(self):
         # Initialize the Kubernetes API client
         self.api = client.CustomObjectsApi()
 
-    def create_awsauth(self, namespace, awsauth_body):
-        # Create an AWSAuth resource in the specified namespace
-        # Use self.api.create_namespaced_custom_object() to interact with the API
-        return self.api.create_namespaced_custom_object(
-            group="stable.example.com",
-            version="v1",
-            namespace=namespace,
-            plural="awsauths",
-            body=awsauth_body
-        )
+    def watch_awsauth(self, namespace):
+        # Watch for changes and deletions of AWSAuth resources in the specified namespace
+        # Use self.api.list_namespaced_custom_object() with watch=True to interact with the API
+        resource_version = ''
+        while True:
+            stream = watch.Watch().stream(
+                self.api.list_namespaced_custom_object,
+                group="stable.example.com",
+                version="v1",
+                namespace=namespace,
+                plural="awsauths",
+                resource_version=resource_version,
+                watch=True
+            )
+            for event in stream:
+                event_type = event['type']
+                awsauth = event['object']
+                resource_version = awsauth['metadata']['resourceVersion']
 
-    def get_awsauth(self, namespace, name):
-        # Get an AWSAuth resource by name in the specified namespace
-        # Use self.api.get_namespaced_custom_object() to interact with the API
-        return self.api.get_namespaced_custom_object(
-            group="stable.example.com",
-            version="v1",
-            namespace=namespace,
-            plural="awsauths",
-            name=name
-        )
+                if event_type == 'ADDED':
+                    print(f"Added AWSAuth: {awsauth}")
+                elif event_type == 'MODIFIED':
+                    print(f"Modified AWSAuth: {awsauth}")
+                elif event_type == 'DELETED':
+                    print(f"Deleted AWSAuth: {awsauth}")
 
-    def update_awsauth(self, namespace, name, awsauth_body):
-        # Update an AWSAuth resource in the specified namespace
-        # Use self.api.replace_namespaced_custom_object() to interact with the API
-        return self.api.replace_namespaced_custom_object(
-            group="stable.example.com",
-            version="v1",
-            namespace=namespace,
-            plural="awsauths",
-            name=name,
-            body=awsauth_body
-        )
-
-    def delete_awsauth(self, namespace, name):
-        # Delete an AWSAuth resource in the specified namespace
-        # Use self.api.delete_namespaced_custom_object() to interact with the API
-        return self.api.delete_namespaced_custom_object(
-            group="stable.example.com",
-            version="v1",
-            namespace=namespace,
-            plural="awsauths",
-            name=name,
-            body=client.V1DeleteOptions()
-        )
+            if not stream.is_open():
+                print("Connection closed. Restarting watch...")
+                break
