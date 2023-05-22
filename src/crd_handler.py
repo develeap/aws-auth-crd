@@ -1,13 +1,32 @@
 from kubernetes import client, watch
+from aws_auth_handler import AWSAuthHandler
+
 
 class CRDHandler:
     def __init__(self):
-        # Initialize the Kubernetes API client
         self.api = client.CustomObjectsApi()
+        self.aws_auth_handler = AWSAuthHandler()
+
+    def handle_awsauth_event(self, event_type, awsauth):
+        namespace = awsauth['metadata']['namespace']
+
+        if event_type == 'ADDED' or event_type == 'MODIFIED':
+            if 'mapRoles' in awsauth['spec']:
+                # Update aws-auth ConfigMap with mapRoles data
+                roles_data = awsauth['spec']['mapRoles']
+                self.aws_auth_handler.update_awsauth_configmap(namespace, data=roles_data)
+            elif 'mapUsers' in awsauth['spec']:
+                # Update aws-auth ConfigMap with mapUsers data
+                users_data = awsauth['spec']['mapUsers']
+                self.aws_auth_handler.update_awsauth_configmap(namespace, data=users_data)
+            else:
+                print("Error: Invalid AWSAuth specification.")
+
+        elif event_type == 'DELETED':
+            # Remove mapRoles or mapUsers data from aws-auth ConfigMap
+            self.aws_auth_handler.update_awsauth_configmap(namespace, data={})
 
     def watch_awsauth(self, namespace):
-        # Watch for changes and deletions of AWSAuth resources in the specified namespace
-        # Use self.api.list_namespaced_custom_object() with watch=True to interact with the API
         resource_version = ''
         while True:
             stream = watch.Watch().stream(
@@ -24,12 +43,7 @@ class CRDHandler:
                 awsauth = event['object']
                 resource_version = awsauth['metadata']['resourceVersion']
 
-                if event_type == 'ADDED':
-                    print(f"Added AWSAuth: {awsauth}")
-                elif event_type == 'MODIFIED':
-                    print(f"Modified AWSAuth: {awsauth}")
-                elif event_type == 'DELETED':
-                    print(f"Deleted AWSAuth: {awsauth}")
+                self.handle_awsauth_event(event_type, awsauth)
 
             if not stream.is_open():
                 print("Connection closed. Restarting watch...")
