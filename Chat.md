@@ -49,3 +49,4 @@
 
     __Chat:__ In this updated version, the CRDHandler class has a new method called handle_awsauth_event(), which takes the event type (ADDED, MODIFIED, or DELETED) and the AWSAuth resource as input. It checks the event type and the presence of either mapRoles or mapUsers in the AWSAuth resource's specification. If mapRoles is present, it updates the aws-auth ConfigMap with the mapRoles data. If mapUsers is present, it updates the ConfigMap with the mapUsers data. If neither is present, it prints an error message.
 
+10. __Me:__ 
